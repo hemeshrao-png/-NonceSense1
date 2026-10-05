@@ -42,5 +42,4 @@ python3 host_test.py /dev/ttyUSB0
 ```
 Task 0 is in `task0/` with its own Makefile (`cd task0 && make`).
 
-## Logs
-(Paste the output of `host_test.py` here, or a terminal capture.)
+
