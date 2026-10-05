@@ -1,0 +1,35 @@
+# task0/Makefile - build the bare-metal blinky. Targets: make, make clean, make flash
+CC      = arm-none-eabi-gcc
+OBJCOPY = arm-none-eabi-objcopy
+SIZE    = arm-none-eabi-size
+CPU     = -mcpu=cortex-m3 -mthumb
+CFLAGS  = $(CPU) -Wall -Wextra -O2 -nostdlib -nostartfiles -ffreestanding \
+          -fno-builtin -fno-tree-loop-distribute-patterns -ffunction-sections -fdata-sections
+LDFLAGS = $(CPU) -nostdlib -nostartfiles -T linker.ld -Wl,--gc-sections -Wl,-Map=build/task0.map
+TARGET  = build/task0
+SRCS    = startup.c main.c
+OBJS    = $(SRCS:%.c=build/%.o)
+
+all: $(TARGET).elf $(TARGET).bin
+	$(SIZE) $(TARGET).elf
+
+build/%.o: %.c | build
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(TARGET).elf: $(OBJS) linker.ld
+	$(CC) $(OBJS) $(LDFLAGS) -o $@
+
+$(TARGET).bin: $(TARGET).elf
+	$(OBJCOPY) -O binary $< $@
+
+build:
+	mkdir -p build
+
+flash: $(TARGET).elf
+	openocd -f interface/stlink.cfg -f target/stm32f1x.cfg \
+	        -c "program $(TARGET).elf verify reset exit"
+
+clean:
+	rm -rf build
+
+.PHONY: all clean flash
